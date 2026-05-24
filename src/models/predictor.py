@@ -6,8 +6,13 @@
 
 import torch
 import torch.nn as nn
-from .encoder import create_encoder
-from .decoder import create_decoder
+
+try:
+    from graphppi.models.encoder import create_encoder
+    from graphppi.models.decoder import create_decoder
+except ModuleNotFoundError:
+    from models.encoder import create_encoder
+    from models.decoder import create_decoder
 
 
 class LinkPredictor(nn.Module):

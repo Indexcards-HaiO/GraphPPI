@@ -9,7 +9,11 @@
 import torch
 import torch.nn.functional as F
 import copy
-from metrics import compute_all_metrics
+
+try:
+    from graphppi.metrics import compute_all_metrics
+except ModuleNotFoundError:
+    from metrics import compute_all_metrics
 
 
 class LinkPredictionTrainer:

@@ -2,19 +2,16 @@
 
 import torch
 import numpy as np
-import sys
 import os
 import argparse
+import pandas as pd
 from collections import defaultdict
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from baselines.common_neighbors import common_neighbors_predict
-from baselines.jaccard import jaccard_predict
-from baselines.adamic_adar import adamic_adar_predict
-from baselines.node2vec_rf import Node2VecRF
-from utils import split_edges_kfold, get_edges_by_indices, sample_negative_edges
-from metrics import compute_auc, compute_ap
+from graphppi.baselines.common_neighbors import common_neighbors_predict
+from graphppi.baselines.jaccard import jaccard_predict
+from graphppi.baselines.adamic_adar import adamic_adar_predict
+from graphppi.baselines.node2vec_rf import Node2VecRF
+from graphppi.utils import split_edges_kfold, get_edges_by_indices, sample_negative_edges
 
 
 def evaluate_baselines_kfold(data, k=5, seed=42, verbose=True):

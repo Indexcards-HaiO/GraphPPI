@@ -250,12 +250,13 @@ def compute_seed_neighbor_count(edge_index, num_nodes, node_names, seed_genes):
     return result
 
 
-def compute_features_from_edges(edge_index, edge_weight, num_nodes, node_names):
+def compute_features_from_edges(edge_index, edge_weight, num_nodes, node_names, seed_genes=None):
     """
     基于给定的边集（应该是训练边）动态计算 5 个拓扑特征
     这是消除数据泄露的关键：只用训练边计算特征
     """
-    seed_genes = ['TP53', 'BRCA1', 'ERBB2', 'PIK3CA', 'ESR1']
+    if seed_genes is None:
+        seed_genes = ['TP53', 'BRCA1', 'ERBB2', 'PIK3CA', 'ESR1']
 
     f_degree = compute_degree(edge_index, num_nodes)
     f_wdegree = compute_weighted_degree(edge_index, edge_weight, num_nodes)

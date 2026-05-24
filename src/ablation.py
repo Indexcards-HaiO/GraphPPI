@@ -5,14 +5,11 @@
 """
 
 import torch
-import sys
 import os
 import argparse
 import pandas as pd
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from evaluate_gnn import evaluate_gnn_kfold
+from graphppi.evaluate_gnn import evaluate_gnn_kfold
 
 
 def run_feature_ablation(data, k=5):

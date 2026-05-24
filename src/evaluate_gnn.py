@@ -8,17 +8,14 @@ GNN 链路预测评估脚本
 
 import torch
 import numpy as np
-import sys
 import os
 import argparse
 from collections import defaultdict
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from utils import split_edges_kfold, prepare_fold_data
-from models.predictor import LinkPredictor
-from trainer import LinkPredictionTrainer
-from metrics import format_metrics
+from graphppi.utils import split_edges_kfold, prepare_fold_data
+from graphppi.models.predictor import LinkPredictor
+from graphppi.trainer import LinkPredictionTrainer
+from graphppi.metrics import format_metrics
 
 
 def evaluate_gnn_kfold(data, config, k=5, verbose=True):

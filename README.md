@@ -277,27 +277,50 @@ GraphPPI/
 
 ---
 
-## 📝 未来的节点排序模块（乳腺癌候选基因排序）
-
-> 以下为预留位置，待后续实现。
+## 📝 节点排序模块（乳腺癌候选基因排序）
 
 ### 概述
 
 基于训练好的 GNN 模型，对 146 个乳腺癌候选基因按其"与已知关键基因的潜在互作强度"进行排序，识别最可能的新互作靶点。
 
-### 计划流程
+该模块并不写死当前 146 个基因；只要后续更大的数据集仍通过 `preprocess.py` 生成包含 `edge_index`、`edge_weight`、`edge_attr` 和 `node_names` 的 `graph.pt`，就可以复用同一套排序流程。候选节点会按 batch 打分，避免在大图上一次性构造所有候选边。
 
-1. 使用最佳模型（SAGE-MLP）在全图上训练，获得所有节点的嵌入表示
-2. 对每个候选基因，计算其与已知乳腺癌关键基因（如 TP53, BRCA1, ERBB2, PIK3CA, ESR1）的嵌入相似度
+### 流程
+
+1. 使用 SAGE-MLP 等链接预测模型训练节点嵌入和边解码器
+2. 对每个候选基因，计算其与已知关键基因（默认 TP53, BRCA1, ERBB2, PIK3CA, ESR1）的预测互作概率
 3. 按预测分数降序排列，输出排名列表
 4. 对 Top-N 候选进行文献验证
 
-### 命令行（计划）
+### 命令行
 
 ```bash
-# 节点排序（待实现）
-python src/rank_genes.py --model sage --decoder mlp --top_k 20
+# 默认乳腺癌关键基因，输出 Top-20
+python src/rank_genes.py --encoder sage --decoder mlp --top-k 20
+
+# 自定义种子基因和候选基因文件，适合更大的数据集
+python src/rank_genes.py \
+  --seeds TP53 BRCA1 ERBB2 \
+  --candidates-file data/raw/candidates.txt \
+  --top-k 50 \
+  --batch-size 8192 \
+  --output results/gene_rankings.csv
+
+# 如果已安装为 graphppi 命令
+graphppi rank --seeds TP53 BRCA1 ERBB2 --top-k 50
 ```
+
+输出文件包含：
+
+| 字段 | 含义 |
+|------|------|
+| `gene` | 候选节点名称 |
+| `score` | 用于排序的聚合分数 |
+| `mean_score` / `max_score` / `min_score` | 候选节点到种子节点的预测互作概率统计 |
+| `num_scored_seeds` | 实际参与打分的种子节点数 |
+| `best_seed` | 与该候选节点预测分数最高的种子基因 |
+
+默认会跳过已经存在的 seed-candidate 已知边，只排序潜在新互作；如需把已知边也纳入打分，可加 `--include-known`。
 
 ---
 
