@@ -1,0 +1,23 @@
+# GraphPPI 项目依赖
+# Python >= 3.10
+
+# === 核心深度学习 ===
+torch>=2.0.0
+torch_geometric>=2.5.0
+
+# === 数据处理 ===
+pandas>=2.0.0
+numpy>=1.24.0
+
+# === 机器学习 ===
+scikit-learn>=1.3.0
+
+# === 图分析 ===
+networkx>=3.0
+
+# === Baseline: Node2Vec ===
+node2vec>=0.4.0
+
+# === 可选（可视化，当前未激活） ===
+# matplotlib>=3.7.0
+# seaborn>=0.12.0
