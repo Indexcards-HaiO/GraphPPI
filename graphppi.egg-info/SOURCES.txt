@@ -9,14 +9,18 @@ graphppi.egg-info/requires.txt
 graphppi.egg-info/top_level.txt
 src/__init__.py
 src/ablation.py
+src/benchmark.py
 src/cli.py
 src/data_loader.py
+src/download_string.py
 src/evaluate_baselines.py
 src/evaluate_gnn.py
+src/evaluate_independent.py
 src/features.py
 src/metrics.py
 src/plot_results.py
 src/preprocess.py
+src/rank_genes.py
 src/train_link_prediction.py
 src/train_link_prediction_tuned.py
 src/trainer.py
@@ -34,5 +38,6 @@ src/models/predictor.py
 tests/test_metrics.py
 tests/test_models.py
 tests/test_preprocess.py
+tests/test_rank_genes.py
 tests/test_trainer.py
 tests/test_utils.py

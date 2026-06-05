@@ -68,7 +68,7 @@ def test_link_predictor():
     """LinkPredictor 完整前向传播"""
     x = torch.randn(3, 5)
     mp_edge_index = torch.tensor([[0, 1], [1, 0]], dtype=torch.long)
-    pred_edge_index = torch.tensor([[0, 2]], dtype=torch.long)
+    pred_edge_index = torch.tensor([[0], [2]], dtype=torch.long)
 
     model = LinkPredictor(in_dim=5, encoder_type='gcn', decoder_type='mlp',
                           hidden_dim=16, out_dim=8, num_layers=2)

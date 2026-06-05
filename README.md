@@ -27,6 +27,36 @@
 
 ---
 
+## 🚀 快速开始
+
+```bash
+git clone https://github.com/Totheinfinity66y/GraphPPI_test.git
+cd GraphPPI_test
+
+# 安装（推荐使用 conda 环境）
+conda create -n graphppi python=3.11 -y && conda activate graphppi
+pip install -e .
+
+# 数据预处理
+graphppi preprocess
+
+# 5-fold GNN 评估
+graphppi evaluate --k 5
+
+# Baseline 评估
+graphppi baselines --k 5
+
+# 候选基因排序
+graphppi rank --top-k 20
+
+# 查看所有命令
+graphppi --help
+```
+
+> 📓 完整演示见 [`demo.ipynb`](demo.ipynb)：边预测 + 节点排序 + 可视化，一键运行。
+
+---
+
 ## 🧠 技术栈
 
 | 类别 | 技术 | 用途 |
@@ -128,52 +158,53 @@
 ### 环境准备
 
 ```bash
-# 1. 创建 Python 虚拟环境（Python >= 3.10）
-conda create -n graphppi python=3.11 -y
-conda activate graphppi
+# 安装 graphppi（开发模式）
+pip install -e .
 
-# 2. 安装 PyTorch（根据你的 CUDA 版本选择，CPU 版如下）
-pip install torch torch-geometric
-
-# 3. 安装其余依赖
-pip install -r requirements.txt
+# 或含文档/开发依赖
+pip install -e ".[dev,docs]"
 ```
 
+> 依赖项会自动安装（PyTorch, PyG, pandas, scikit-learn 等）。
 > 如果 `torch-geometric` 安装遇到问题，参考 [PyG 官方安装指南](https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html)。
 
 ### 1. 数据预处理
 
 ```bash
 # 提取 8 通道 STRING 边特征，生成 graph.pt
-python src/preprocess.py
+graphppi preprocess
 ```
 
-### 2. GNN 评估（5-fold CV）
+### 2. GNN 评估（k-fold CV）
 
 ```bash
-# 5-fold 交叉验证，300 epochs
-python src/evaluate_gnn.py --k 5 --epochs 300 --patience 30
+# 5-fold 交叉验证
+graphppi evaluate --k 5
+
+# 指定编码器和解码器
+graphppi evaluate --k 5 --encoder sage --decoder mlp
 ```
 
-### 3. Baseline 评估（5-fold CV）
+### 3. Baseline 评估（k-fold CV）
 
 ```bash
-# 4 种基线方法的 5-fold CV
-python src/evaluate_baselines.py --k 5
+graphppi baselines --k 5
 ```
 
 ### 4. 消融实验
 
 ```bash
-# 完整消融实验（特征 + 架构）
-python src/ablation.py --k 3 --epochs 300
+graphppi ablation --k 3
 ```
 
-### 5. 单次快速验证
+### 5. 基因排序
 
 ```bash
-# 2-fold 快速检查
-python src/evaluate_gnn.py --k 2 --epochs 100 --patience 20
+# 默认乳腺癌关键基因，输出 Top-20
+graphppi rank --top-k 20
+
+# 自定义种子基因
+graphppi rank --seeds TP53 BRCA1 ERBB2 --top-k 50
 ```
 
 ---
@@ -222,7 +253,19 @@ python src/evaluate_gnn.py --k 2 --epochs 100 --patience 20
 └─────────────────────────────────────────────────┘
 ```
 
----
+### 节点排序（Novel Interaction Prediction）
+
+`graphppi rank` 对候选基因按与 5 个乳腺癌关键基因（TP53, BRCA1, ERBB2, PIK3CA, ESR1）的预测互作强度排序，已存在互作被排除：
+
+| 排名 | gene | score | best_seed | 说明 |
+|:---:|------|:-----:|:---------:|------|
+| 1 | **MAPK3** | 0.985 | ERBB2 | MAPK/ERK 通路关键激酶 |
+| 2 | **MAPK1** | 0.975 | ERBB2 | MAPK 通路核心成员 |
+| 3 | **KIT** | 0.966 | ERBB2 | 受体酪氨酸激酶 |
+| 4 | AKT2 | 0.869 | ERBB2 | PI3K/AKT 通路 |
+| 5 | PIK3CB | 0.844 | ESR1 | PI3K 催化亚基 |
+
+> `score` = 聚合预测概率（mean）；`best_seed` = 最强预测的种子基因
 
 ---
 
@@ -231,96 +274,103 @@ python src/evaluate_gnn.py --k 2 --epochs 100 --patience 20
 ```
 GraphPPI/
 ├── README.md                          # 本文件
-├── requirements.txt                   # Python 依赖
-│
-├── data/
-│   ├── raw/                           # 原始数据
-│   │   ├── edges.tsv                  # STRING PPI 边 (13列含8证据通道)
-│   │   ├── annotations.tsv            # 146个基因注释
-│   │   └── degrees.tsv                # 节点度数
-│   └── processed/
-│       └── graph.pt                   # 预处理后的 PyG Data 对象
-│
-├── results/                           # 实验结果 CSV
-│   ├── ablation_results.csv
-│   └── baseline_kfold_results.csv
-│
+├── setup.py                           # pip install -e .
+├── pyproject.toml                     # 构建系统
+├── requirements.txt / environment.yml # 依赖
+├── mkdocs.yml                         # 文档配置
+├── Dockerfile / graphppi.def          # 容器化
+├── Snakefile                          # 工作流编排
+├── demo.ipynb                         # 演示 notebook
+├── .github/workflows/ci.yml           # CI/CD
+├── docs/                              # MkDocs 文档源
+├── data/  raw/  processed/            # 数据
+├── tests/                             # 24 个单元测试
+├── results/                           # 输出结果
 └── src/
-    ├── preprocess.py                  # [新] 8通道边特征提取 + 重建 graph.pt
-    ├── data_loader.py                 # [旧] 原始数据加载器（保留）
-    ├── features.py                    # [旧] 原始特征计算（保留）
-    ├── utils.py                       # [新] k-fold划分 + 特征动态计算 + 负采样
-    ├── metrics.py                     # [新] AUC / AP / Hits@K
-    ├── trainer.py                     # [新] 训练循环 + 早停（消息传递隔离）
-    │
-    ├── models/
-    │   ├── encoder.py                 # [新] GCN / GAT / SAGE 编码器
-    │   ├── decoder.py                 # [新] Dot / MLP / EdgeMLP 解码器
-    │   ├── predictor.py               # [新] 统一 LinkPredictor
-    │   └── gcn.py                     # [旧] 原始 GCN 模型（保留）
-    │
-    ├── evaluate_gnn.py                # [新] GNN k-fold CV 评估
-    ├── evaluate_baselines.py          # [改] Baseline k-fold CV 评估
-    ├── ablation.py                    # [新] 消融实验编排
-    │
-    ├── train_link_prediction.py       # [旧] 原始训练脚本（保留，含泄露bug）
-    ├── train_link_prediction_tuned.py # [旧] 原始调优脚本（保留）
-    │
-    └── baselines/                     # Baseline 方法（不变）
-        ├── common_neighbors.py
-        ├── jaccard.py
-        ├── adamic_adar.py
-        └── node2vec_rf.py
+    ├── cli.py                         # graphppi 命令行
+    ├── utils / metrics / trainer      # 核心模块
+    ├── models/ (encoder, decoder, predictor)
+    ├── baselines/ (CN, Jaccard, AA, N2V+RF)
+    ├── evaluate_gnn / evaluate_baselines / ablation
+    ├── rank_genes / benchmark
+    ├── evaluate_independent / download_string
+    └── plot_results.py
 ```
-
-> **[新]** = 本次重构新增；**[改]** = 重构修改；**[旧]** = 原始版本保留作参考
 
 ---
 
-## 📝 节点排序模块（乳腺癌候选基因排序）
-
-### 概述
-
-基于训练好的 GNN 模型，对 146 个乳腺癌候选基因按其"与已知关键基因的潜在互作强度"进行排序，识别最可能的新互作靶点。
-
-该模块并不写死当前 146 个基因；只要后续更大的数据集仍通过 `preprocess.py` 生成包含 `edge_index`、`edge_weight`、`edge_attr` 和 `node_names` 的 `graph.pt`，就可以复用同一套排序流程。候选节点会按 batch 打分，避免在大图上一次性构造所有候选边。
-
-### 流程
-
-1. 使用 SAGE-MLP 等链接预测模型训练节点嵌入和边解码器
-2. 对每个候选基因，计算其与已知关键基因（默认 TP53, BRCA1, ERBB2, PIK3CA, ESR1）的预测互作概率
-3. 按预测分数降序排列，输出排名列表
-4. 对 Top-N 候选进行文献验证
-
-### 命令行
+## 📝 CLI 命令参考
 
 ```bash
-# 默认乳腺癌关键基因，输出 Top-20
-python src/rank_genes.py --encoder sage --decoder mlp --top-k 20
+graphppi --help                    # 查看所有命令
 
-# 自定义种子基因和候选基因文件，适合更大的数据集
-python src/rank_genes.py \
-  --seeds TP53 BRCA1 ERBB2 \
-  --candidates-file data/raw/candidates.txt \
-  --top-k 50 \
-  --batch-size 8192 \
-  --output results/gene_rankings.csv
+# 核心命令
+graphppi preprocess                # 提取 STRING 8 通道边特征
+graphppi evaluate --k 5            # GNN k-fold CV（支持 --encoder/--decoder）
+graphppi baselines --k 5           # Baseline k-fold CV
+graphppi ablation --k 3            # 消融实验
+graphppi rank --top-k 20           # 候选基因排序
 
-# 如果已安装为 graphppi 命令
-graphppi rank --seeds TP53 BRCA1 ERBB2 --top-k 50
+# 进阶命令
+graphppi download-string \         # 从 STRING API 下载 PPI 数据
+    --genes TP53 BRCA1 ESR1
+
+# 脚本工具
+python src/benchmark.py            # 复杂度分析 + 实测基准
+python src/evaluate_independent.py # 独立测试集评估
+python src/plot_results.py         # 基准对比可视化
 ```
 
-输出文件包含：
+---
 
-| 字段 | 含义 |
-|------|------|
-| `gene` | 候选节点名称 |
-| `score` | 用于排序的聚合分数 |
-| `mean_score` / `max_score` / `min_score` | 候选节点到种子节点的预测互作概率统计 |
-| `num_scored_seeds` | 实际参与打分的种子节点数 |
-| `best_seed` | 与该候选节点预测分数最高的种子基因 |
+## 进阶功能
 
-默认会跳过已经存在的 seed-candidate 已知边，只排序潜在新互作；如需把已知边也纳入打分，可加 `--include-known`。
+### 🐳 Docker / Apptainer
+
+```bash
+docker build -t graphppi .
+docker run --rm graphppi evaluate --k 3
+
+# Apptainer
+apptainer build graphppi.sif graphppi.def
+apptainer run graphppi.sif rank --top-k 20
+```
+
+### ⚙️ Snakemake 工作流
+
+```bash
+snakemake -j1 all             # 运行完整流程
+snakemake -j1 evaluate_gnn    # 仅 GNN 评估
+```
+
+### 📊 基准测试
+
+```bash
+python src/benchmark.py       # 复杂度分析 + 所有方法实测对比
+```
+
+### 🔬 独立测试集
+
+```bash
+python src/evaluate_independent.py --holdout 0.2 --epochs 200
+```
+
+### 🌐 公开数据对接
+
+```bash
+graphppi download-string --genes TP53 BRCA1 ESR1 PIK3CA
+```
+
+### 📖 文档
+
+```bash
+pip install -e ".[docs]"
+mkdocs serve                    # http://localhost:8000
+```
+
+### 🧪 CI/CD
+
+推送到 GitHub 后自动运行：pytest + CLI smoke test（`.github/workflows/ci.yml`）
 
 ---
 

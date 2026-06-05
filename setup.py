@@ -14,6 +14,18 @@ setup(
         "networkx>=3.0",
         "node2vec>=0.4.0",
     ],
+    extras_require={
+        "dev": [
+            "pytest>=7.0",
+            "matplotlib>=3.7.0",
+            "seaborn>=0.12.0",
+        ],
+        "docs": [
+            "mkdocs>=1.5",
+            "mkdocstrings[python]>=0.25",
+            "mkdocs-material>=9.0",
+        ],
+    },
     packages=["graphppi", "graphppi.models", "graphppi.baselines"],
     package_dir={"graphppi": "src"},
     entry_points={

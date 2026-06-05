@@ -21,7 +21,7 @@ def test_split_edges_kfold():
 
     for fold in folds:
         # 所有边恰好分配一次
-        all_indices = set(fold['train']) | set(fold['test'])
+        all_indices = set(fold['train']) | set(fold['val']) | set(fold['test'])
         assert all_indices == set(range(3))
         # train 和 test 不重叠
         assert set(fold['train']).isdisjoint(set(fold['test']))
@@ -46,9 +46,9 @@ def test_compute_degree():
     edge_index = torch.tensor([[0, 0, 1], [1, 2, 2]], dtype=torch.long)
     num_nodes = 3
     degree = compute_degree(edge_index, num_nodes)
-    assert degree[0] == 2  # 连 1 和 2
-    assert degree[1] == 2  # 连 0 和 2
-    assert degree[2] == 2  # 连 0 和 1
+    assert degree[0] == 2  # 出边: 0→1, 0→2
+    assert degree[1] == 1  # 出边: 1→2
+    assert degree[2] == 0  # 无出边
 
 
 def test_compute_features_from_edges():

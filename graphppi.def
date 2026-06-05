@@ -1,0 +1,35 @@
+# Apptainer / Singularity Definition File
+# Build: apptainer build graphppi.sif graphppi.def
+
+Bootstrap: docker
+From: continuumio/miniconda3:24.11.1-0
+
+%labels
+    Author GraphPPI Team
+    Version 1.0.0
+    Description GNN for PPI Link Prediction
+
+%post
+    apt-get update && apt-get install -y --no-install-recommends build-essential
+    rm -rf /var/lib/apt/lists/*
+
+    # Create conda environment
+    conda env create -f /app/environment.yml
+    conda clean -afy
+
+    # Install graphppi
+    /bin/bash -c "source activate graphppi && pip install -e /app --no-deps"
+
+%files
+    . /app
+
+%environment
+    export PATH=/opt/conda/envs/graphppi/bin:$PATH
+
+%runscript
+    exec graphppi "$@"
+
+%help
+    GraphPPI — GNN for Protein-Protein Interaction Link Prediction
+    Usage: apptainer run graphppi.sif [command] [args]
+    Commands: preprocess | evaluate | baselines | ablation | rank

@@ -39,7 +39,7 @@ def test_evaluate():
 
     x = torch.randn(5, 3)
     mp_edge_index = torch.tensor([[0, 1, 2], [1, 2, 3]], dtype=torch.long)
-    eval_edges = torch.tensor([[0, 1], [1, 2], [2, 3]], dtype=torch.long)
+    eval_edges = torch.tensor([[0, 1, 2], [1, 2, 3]], dtype=torch.long)
     eval_labels = torch.tensor([1.0, 0.0, 1.0])
 
     model = LinkPredictor(in_dim=3, encoder_type='gcn', decoder_type='dot',

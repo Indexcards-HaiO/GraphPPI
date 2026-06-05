@@ -94,6 +94,21 @@ def cmd_rank(args):
         print(rankings.to_string(index=False))
 
 
+def cmd_download_string(args):
+    """从 STRING API 下载 PPI 数据"""
+    from graphppi.download_string import main as ds_main
+    import sys
+    sys.argv = ["download_string",
+               "--species", str(args.species),
+               "--min-score", str(args.min_score),
+               "--output", args.output]
+    if args.genes:
+        sys.argv += ["--genes"] + args.genes
+    if args.gene_file:
+        sys.argv += ["--gene-file", args.gene_file]
+    ds_main()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="GraphPPI: Graph Neural Network for PPI Link Prediction",
@@ -105,6 +120,7 @@ Examples:
   graphppi baselines --k 5                # 5-fold baseline CV
   graphppi ablation --k 3                 # Ablation study
   graphppi rank --seeds TP53 BRCA1        # Rank candidate genes
+  graphppi download-string --genes TP53 BRCA1   # Download from STRING API
 """
     )
     sub = parser.add_subparsers(dest="command")
@@ -152,6 +168,14 @@ Examples:
     p5.add_argument("--device", default="cpu")
     p5.add_argument("--quiet", action="store_true")
     p5.set_defaults(func=cmd_rank)
+
+    p6 = sub.add_parser("download-string", help="Download PPI data from STRING API")
+    p6.add_argument("--species", type=int, default=9606, help="NCBI taxonomy ID")
+    p6.add_argument("--min-score", type=int, default=700, help="Minimum combined_score")
+    p6.add_argument("--genes", nargs="*", default=None, help="Gene names")
+    p6.add_argument("--gene-file", default=None, help="Gene list file")
+    p6.add_argument("--output", default=os.path.join(PROJECT_ROOT, "data", "raw", "edges_from_string.tsv"))
+    p6.set_defaults(func=cmd_download_string)
 
     args = parser.parse_args()
     if args.command:
