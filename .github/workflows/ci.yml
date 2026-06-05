@@ -31,14 +31,16 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install torch torch_geometric --index-url https://download.pytorch.org/whl/cpu
-          pip install -e ".[dev]"
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install torch_geometric
+          pip install pandas numpy scikit-learn networkx node2vec pytest
+          pip install -e . --no-deps
 
       - name: Verify data files
         run: |
           if [ ! -f data/processed/graph.pt ]; then
-            echo "Missing graph.pt — run preprocess first or download from release"
-            python -m graphppi.cli preprocess 2>/dev/null || echo "Skipping preprocess"
+            echo "Missing graph.pt — generating from raw data..."
+            python -m graphppi preprocess
           fi
 
       - name: Run tests
